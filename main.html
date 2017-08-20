@@ -135,8 +135,7 @@
 			game.stage = 0;
 			game.tileset;
 			game.tileImgs = [];
-			game.tileObjs = [];
-			game.ObjectObjs = [];
+			game.behavior = [];
 			game.tileW = 16;
 			game.tileH = 16;
 			game.pixelScale = 2;
@@ -155,32 +154,33 @@
 		//object template
 		function ObjTemplate( uniqueId, objGraphic, xOffset, yOffset ){
 			this.id = uniqueId;
-			this.tile = tileGraphic;
+			this.tile = objGraphic;
 			this.xOffset = xOffset;
 			this.yOffset = yOffset;
 		}
 		
 		//TILE AND OBJ DATA
+		//these define the behavior of the tiles, but are not the actual tiles themselves.
 		//tiles
-		game.tileObjs[0] = new TileTemplate( "wall_left", 12, false, false, false );
-		game.tileObjs[1] = new TileTemplate( "wall", 13, false, false, false );
-		game.tileObjs[2] = new TileTemplate( "wall_right", 16, false, false, false );
-		game.tileObjs[3] = new TileTemplate( "door_open", 14, true, false, false );
-		game.tileObjs[4] = new TileTemplate( "door_shut", 15, false, false, false );
-		game.tileObjs[5] = new TileTemplate( "abyss", 17, false, false, false );
-		game.tileObjs[6] = new TileTemplate( "monster_floor", 12, true, true, true );
-		game.tileObjs[7] = new TileTemplate( "tile_floor", 13, true, false, true );
-		game.tileObjs[8] = new TileTemplate( "solid_wall", 14, false, false, false );
-		game.tileObjs[9] = new TileTemplate( "hole", 15, false, false, false );
-		game.tileObjs[10] = new TileTemplate( "hole_full", 16, true, true, true );
+		game.behavior[0] = new TileTemplate( "wall_left", 12, false, false, false );
+		game.behavior[1] = new TileTemplate( "wall", 13, false, false, false );
+		game.behavior[2] = new TileTemplate( "wall_right", 16, false, false, false );
+		game.behavior[3] = new TileTemplate( "door_open", 14, true, false, false );
+		game.behavior[4] = new TileTemplate( "door_shut", 15, false, false, false );
+		game.behavior[5] = new TileTemplate( "abyss", 17, false, false, false );
+		game.behavior[6] = new TileTemplate( "monster_floor", 12, true, true, true );
+		game.behavior[7] = new TileTemplate( "tile_floor", 13, true, false, true );
+		game.behavior[8] = new TileTemplate( "solid_wall", 14, false, false, false );
+		game.behavior[9] = new TileTemplate( "hole", 15, false, false, false );
+		game.behavior[10] = new TileTemplate( "hole_full", 16, true, true, true );
 		
 		//objects
-		game.ObjectObjs[0] = new ObjTemplate( "player", [0,1,2], 0, -4 );
-		game.ObjectObjs[1] = new ObjTemplate( "key", 3, 0, -4 );
-		game.ObjectObjs[2] = new ObjTemplate( "sword", 4, 0, -4 );
-		game.ObjectObjs[3] = new ObjTemplate( "monster", 5, 0, -4 );
-		game.ObjectObjs[4] = new ObjTemplate( "crown", 6, 0, -4 );
-		game.ObjectObjs[5] = new ObjTemplate( "boulder", 7, 0, -4 );
+		game.behavior[11] = new ObjTemplate( "player", [0,1,2], 0, -4 );
+		game.behavior[12] = new ObjTemplate( "key", 3, 0, -4 );
+		game.behavior[13] = new ObjTemplate( "sword", 4, 0, -4 );
+		game.behavior[14] = new ObjTemplate( "monster", 5, 0, -4 );
+		game.behavior[15] = new ObjTemplate( "crown", 6, 0, -4 );
+		game.behavior[16] = new ObjTemplate( "boulder", 7, 0, -4 );
 		
 		var c = document.getElementById("MainCanvas");
 		var ctx = c.getContext("2d");
@@ -191,14 +191,39 @@
 			var vSize = game.pixelScale * game.tileH;
 			ctx.drawImage( img, x * hSize, y * vSize, hSize, vSize ); 
 		}
-	
+		function clear(){
+			ctx.clearRect(0,0,c.width,c.height);
+		}
+		
+		function InterpretMap(){
+			var URL = window.location.href;
+			//get value from URL's query string
+			var defaultTile = 0;
+			//validation
+			var mapString = "12abcdef";
+			if ( mapString.length > 256 ){
+				mapString = mapString.substring( 0, 256 );
+			}
+			var mapArray = [];
+			console.log( mapString );
+			for ( var i = 0; i < mapString.length; i++ ){
+				mapArray.push( parseInt( mapString[i], 36) );
+			}
+			if ( mapArray.length < 256 ){
+				var length = 256 - mapString.length;
+				while ( length ){
+					length--;
+					mapArray.push( defaultTile );
+				}
+			}
+			console.log( mapArray );
+		}
+		
 		function Main(){
 			
 			switch ( game.stage ){
 				case 0:	//initialisation
-					for ( var i = 0; i < 36; i++ ){
-						drawImg( game.tileImgs[i],i % 6, Math.floor(i / 6) );
-					}
+					var toggle = 0;
 					break;
 				default:
 					console.log( "ERROR: no such game stage" );
