@@ -198,9 +198,14 @@
 		function InterpretMap(){
 			var URL = window.location.href;
 			//get value from URL's query string
+			var regexp = /(.*)\?map\=(.*)/g;
+			var matches = regexp.exec( URL );
+			var mapString = "123456";
+			if ( matches ){
+				mapString = matches[2];
+			}
 			var defaultTile = 0;
 			//validation
-			var mapString = "12abcdef";
 			if ( mapString.length > 256 ){
 				mapString = mapString.substring( 0, 256 );
 			}
