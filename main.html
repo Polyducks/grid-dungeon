@@ -1,0 +1,249 @@
+<style>
+
+	@keyframes backgroundStepChange{
+		0%	{ background-color: #1F1F1F;}
+		25% { background-color: #4D533C;}
+		50%	{ background-color: #8B956D;}
+		75%{ background-color: #C4CFA1;}
+	}
+	#MainCanvas{
+		background-color: #C4CFA1;
+		/*animation-name: backgroundStepChange;
+		animation-duration: 4s;
+		animation-iteration-count: infinite;
+		animation-timing-function: step-end;*/
+	}
+</style>
+
+<canvas id="MainCanvas" width="512" height="512"></canvas>
+
+<script>
+	(function(){
+		/*##############################
+		USEFUL FUNCTIONS
+		##############################*/
+		
+		/*==============================
+		LOAD IMAGES
+		==============================*/
+		//loads the images it's given via src_array
+		//and returns an array of images as an
+		//argument of the callback.
+		function Load_Images(src_array, callback){
+			var returnImages = [];
+			var totalImages = src_array.length;
+			var loaded = 0;
+			for (var x in src_array){
+				//make a new image
+				returnImages[x] = new Image();
+				
+				//ON LOAD
+				returnImages[x].addEventListener("load", function(){
+					Complete();
+				});
+				//ON ERROR
+				returnImages[x].addEventListener("error", function(){
+					console.error("ERROR: failed to load '" + src_array[x] + "'");
+					Complete();
+				});
+				//ON COMPLETE
+				function Complete(){
+					loaded++;
+					if ( loaded == totalImages ){
+						callback( returnImages );
+					}
+				}
+				
+				//give the new image a src
+				returnImages[x].src = src_array[x];
+			}
+		}
+		
+		/*==============================
+		EXTRACT SPRITE
+		==============================*/
+		//extracts a sprite from the sprite sheet
+		//and returns it as an image object.
+		function Extract_Sprite( sprite_sheet_image, x, y, w, h ){
+			var img = sprite_sheet_image;
+			var returnImage = new Image();
+			//imaginary canvas
+			var i = document.createElement("CANVAS");
+				i.width = w;
+				i.height = h;
+			var ictx = i.getContext("2d");
+			
+			ictx.drawImage(img, x, y, w, h, 0, 0, w, h);
+			returnImage.src = i.toDataURL();
+			return returnImage;
+		}
+		
+		/*==============================
+		USER INPUT
+		==============================*/
+		var keyMap = [];
+		/*values for keyMap can be:
+			0 | null	not pressed
+			"KEYPRESS"		pressed
+			"KEYREAD"		read by program
+			"KEYUP"		key has been released but not read
+			//code resets to 0 after it's acknowledged it's been pressed
+		*/
+		document.addEventListener("keydown", function(e){
+			keyMap[e.keyCode] = "KEYPRESS";
+		});
+		document.addEventListener("keyup", function(e){
+			if (keyMap[e.keyCode]){
+				if (keyMap[e.keyCode] == "KEYREAD"){
+					keyMap[e.keyCode] = 0;
+				}else{
+					keyMap[e.keyCode] = "KEYUP";
+				}
+			}
+		});
+		document.addEventListener("blur", function(){
+			//when window loses focus, reset keys.
+			Reset_KeyMap();
+		});
+		function Reset_KeyMap(){
+			keyMap.length = 0;
+		}
+		
+		/*==============================
+		COLLISION
+		==============================*/
+		function Collides( obj1, obj2 ){
+			if (
+				obj1.y > (obj2.y + obj2.h) ||
+				obj2.y > (obj1.y + obj1.h) ||
+				obj1.x > (obj2.x + obj2.w) ||
+				obj2.x > (obj1.x + obj1.x)
+			){
+				//impossible for items to collide
+				return false;
+			}
+			return true;
+		}
+		
+		
+		/*##############################
+		MAIN
+		##############################*/
+		
+		//INIT VARIABLES
+		var game = {};
+			game.stage = 0;
+			game.tileset;
+			game.tileImgs = [];
+			game.tileObjs = [];
+			game.ObjectObjs = [];
+			game.tileW = 16;
+			game.tileH = 16;
+			game.pixelScale = 2;
+			game.map = [];
+		//tile template
+		function TileTemplate( uniqueId, tileGraphic, passable, monsterable, objectable ){
+			this.id = uniqueId;
+			this.tile = tileGraphic;
+			//player can be on this tile
+			this.passable = passable;
+			//monsters can be on this tile
+			this.monsterable = monsterable;
+			//objects can be on this tile
+			this.objectable = objectable;
+		}
+		//object template
+		function ObjTemplate( uniqueId, objGraphic, xOffset, yOffset ){
+			this.id = uniqueId;
+			this.tile = tileGraphic;
+			this.xOffset = xOffset;
+			this.yOffset = yOffset;
+		}
+		
+		//TILE AND OBJ DATA
+		//tiles
+		game.tileObjs[0] = new TileTemplate( "wall_left", 12, false, false, false );
+		game.tileObjs[1] = new TileTemplate( "wall", 13, false, false, false );
+		game.tileObjs[2] = new TileTemplate( "wall_right", 16, false, false, false );
+		game.tileObjs[3] = new TileTemplate( "door_open", 14, true, false, false );
+		game.tileObjs[4] = new TileTemplate( "door_shut", 15, false, false, false );
+		game.tileObjs[5] = new TileTemplate( "abyss", 17, false, false, false );
+		game.tileObjs[6] = new TileTemplate( "monster_floor", 12, true, true, true );
+		game.tileObjs[7] = new TileTemplate( "tile_floor", 13, true, false, true );
+		game.tileObjs[8] = new TileTemplate( "solid_wall", 14, false, false, false );
+		game.tileObjs[9] = new TileTemplate( "hole", 15, false, false, false );
+		game.tileObjs[10] = new TileTemplate( "hole_full", 16, true, true, true );
+		
+		//objects
+		game.ObjectObjs[0] = new ObjTemplate( "player", [0,1,2], 0, -4 );
+		game.ObjectObjs[1] = new ObjTemplate( "key", 3, 0, -4 );
+		game.ObjectObjs[2] = new ObjTemplate( "sword", 4, 0, -4 );
+		game.ObjectObjs[3] = new ObjTemplate( "monster", 5, 0, -4 );
+		game.ObjectObjs[4] = new ObjTemplate( "crown", 6, 0, -4 );
+		game.ObjectObjs[5] = new ObjTemplate( "boulder", 7, 0, -4 );
+		
+		var c = document.getElementById("MainCanvas");
+		var ctx = c.getContext("2d");
+		ctx.imageSmoothingEnabled = false;
+		function drawImg( img, x, y ){
+			//horizontal size
+			var hSize = game.pixelScale * game.tileW;
+			var vSize = game.pixelScale * game.tileH;
+			ctx.drawImage( img, x * hSize, y * vSize, hSize, vSize ); 
+		}
+	
+		function Main(){
+			
+			switch ( game.stage ){
+				case 0:	//initialisation
+					for ( var i = 0; i < 36; i++ ){
+						drawImg( game.tileImgs[i],i % 6, Math.floor(i / 6) );
+					}
+					break;
+				default:
+					console.log( "ERROR: no such game stage" );
+					break;
+			}
+			
+		}
+		
+		//load tileset, split the tiles, then run the program
+		Load_Images( ["tileset.png"], function( imageArray ){
+			game.tileset = imageArray[0];
+			//run through tileset, separating out the images
+			for ( var y = 0; y < 6; y++ ){
+				for ( var x = 0; x < 6; x++ ){
+					game.tileImgs.push( Extract_Sprite( game.tileset, x * game.tileW, y*game.tileH, game.tileW, game.tileH ) );
+				}
+			}
+			Main();
+		});
+	
+	
+	})();
+</script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
