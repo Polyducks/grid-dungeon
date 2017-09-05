@@ -162,25 +162,27 @@
 		//TILE AND OBJ DATA
 		//these define the behavior of the tiles, but are not the actual tiles themselves.
 		//tiles
-		game.behavior[0] = new TileTemplate( "wall_left", 12, false, false, false );
-		game.behavior[1] = new TileTemplate( "wall", 13, false, false, false );
-		game.behavior[2] = new TileTemplate( "wall_right", 16, false, false, false );
-		game.behavior[3] = new TileTemplate( "door_open", 14, true, false, false );
-		game.behavior[4] = new TileTemplate( "door_shut", 15, false, false, false );
-		game.behavior[5] = new TileTemplate( "abyss", 17, false, false, false );
-		game.behavior[6] = new TileTemplate( "monster_floor", 12, true, true, true );
-		game.behavior[7] = new TileTemplate( "tile_floor", 13, true, false, true );
-		game.behavior[8] = new TileTemplate( "solid_wall", 14, false, false, false );
-		game.behavior[9] = new TileTemplate( "hole", 15, false, false, false );
-		game.behavior[10] = new TileTemplate( "hole_full", 16, true, true, true );
+		//										UNIQUE ID		graphic	passable	monster		object
+		game.behavior[0] = new TileTemplate( "wall_left", 		12, 	false, 		false, 		false 	);
+		game.behavior[1] = new TileTemplate( "wall", 			13, 	false, 		false, 		false 	);
+		game.behavior[2] = new TileTemplate( "wall_right", 		16, 	false, 		false, 		false 	);
+		game.behavior[3] = new TileTemplate( "door_open", 		14, 	true, 		false, 		false 	);
+		game.behavior[4] = new TileTemplate( "door_shut", 		15, 	false, 		false, 		false 	);
+		game.behavior[5] = new TileTemplate( "abyss", 			17, 	false, 		false, 		false 	);
+		game.behavior[6] = new TileTemplate( "monster_floor", 	12, 	true, 		true, 		true 	);
+		game.behavior[7] = new TileTemplate( "tile_floor", 		13, 	true, 		false, 		true 	);
+		game.behavior[8] = new TileTemplate( "solid_wall", 		14, 	false, 		false, 		false 	);
+		game.behavior[9] = new TileTemplate( "hole", 			15, 	false, 		false, 		false 	);
+		game.behavior[10] = new TileTemplate( "hole_full", 		16, 	true, 		true, 		true 	);
 		
 		//objects
-		game.behavior[11] = new ObjTemplate( "player", [0,1,2], 0, -4 );
-		game.behavior[12] = new ObjTemplate( "key", 3, 0, -4 );
-		game.behavior[13] = new ObjTemplate( "sword", 4, 0, -4 );
-		game.behavior[14] = new ObjTemplate( "monster", 5, 0, -4 );
-		game.behavior[15] = new ObjTemplate( "crown", 6, 0, -4 );
-		game.behavior[16] = new ObjTemplate( "boulder", 7, 0, -4 );
+		//										UNIQUE ID		grapic-array	xOffset		yOffset
+		game.behavior[11] = new ObjTemplate( "player", 			[0,1,2], 		0, 			-4 		);
+		game.behavior[12] = new ObjTemplate( "key", 			3, 				0, 			-4 		);
+		game.behavior[13] = new ObjTemplate( "sword", 			4, 				0, 			-4 		);
+		game.behavior[14] = new ObjTemplate( "monster", 		5, 				0, 			-4 		);
+		game.behavior[15] = new ObjTemplate( "crown", 			6, 				0, 			-4 		);
+		game.behavior[16] = new ObjTemplate( "boulder", 		7, 				0, 			-4 		);
 		
 		var c = document.getElementById("MainCanvas");
 		var ctx = c.getContext("2d");
